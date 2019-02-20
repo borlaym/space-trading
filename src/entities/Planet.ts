@@ -1,9 +1,10 @@
-import { GameObject, Transform, Rendering } from "game-engine";
-import { Vector3, SphereGeometry, TextureLoader, MeshBasicMaterial, Mesh } from "three";
+import { GameObject, Transform, Rendering, rotateAroundPoint } from "game-engine";
+import { Vector3, SphereGeometry, TextureLoader, MeshBasicMaterial, Mesh, Euler } from "three";
 import Orbit from "../components/Orbit";
 import Rotation from "../components/Rotation";
 
 export const DISTANCE_CONSTANT = 4
+const rotationAxis = new Vector3(0, 1, 0)
 
 export default class Planet extends GameObject {
 	constructor(
@@ -19,9 +20,14 @@ export default class Planet extends GameObject {
 		 */
 		public readonly rotationPeriod: number,
 		public readonly orbitsAround: Vector3 = new Vector3(),
+		startingRotation: number
 	) {
 		super();
-		this.getComponent(Transform).position.set(distanceFromSun * DISTANCE_CONSTANT, 0, 0);
+		const transform = this.getComponent(Transform)
+		transform.position.set(distanceFromSun * DISTANCE_CONSTANT, 0, 0);
+		// Here I'm reusing the starting rotation as both the position around the sun and the planet's local rotation
+		rotateAroundPoint(transform.position, this.orbitsAround, rotationAxis, startingRotation)
+		transform.rotation = new Euler(0, startingRotation, 0)
 
 		const planetGeometry = new SphereGeometry(diameter, 32, 32);
 		const planetTexture = new TextureLoader().load(`textures/${name.toLowerCase()}.jpg`);
